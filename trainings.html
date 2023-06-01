@@ -74,18 +74,17 @@
         <button type="submit" value="Submit">Submit</button>
         <br>
     <table>
-    <thead>
-        <tr>
-            <th>Training Details ID</th>
-            <th>Employee ID</th>
-            <th>Training ID</th>
-            <th>Completion Date</th>
-            <th>Pass/Fail</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
+        <thead>
+            <tr>
+                <th>Training Details ID</th>
+                <th>Employee ID</th>
+                <th>Training ID</th>
+                <th>Completion Date</th>
+                <th>Pass/Fail</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
             {% for training_det in training_details %}
             <tr>
                 <th>{{ training_det.training_details_id }}</th>
@@ -96,8 +95,7 @@
                 <td><a href="/delete_training_log/{{ training_det.training_details_id }}" class="delete-icon"><i class="fas fa-trash-alt"></i></td>
             </tr>
             {% endfor %}
-        </tr>
-    </tbody>
-</table>
+        </tbody>
+    </table>
 </body>
 </html>
