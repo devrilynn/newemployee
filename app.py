@@ -300,9 +300,9 @@ def trainings():
             employee_id = request.form['employee_id']
             training_id = request.form['training_id']
             completion_date = request.form['completion_date']
-            pass_or_fail = request.form['pass_or_fail']
+            pass_or_fail = "Pass" if 'pass_or_fail' in request.form else "Fail"
             query = "INSERT INTO TrainingDetails (employee_id, training_id, completion_date, pass_or_fail)"
-            vals = f"VALUES ({employee_id}, {training_id}, '{completion_date}', {pass_or_fail})"
+            vals = f"VALUES ({employee_id}, {training_id}, '{completion_date}', '{pass_or_fail}')"
             cur.execute(query+vals)
             mysql.connection.commit()
         
