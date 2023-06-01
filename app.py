@@ -174,15 +174,16 @@ def edit_department(dept_id):
         return redirect(url_for('departments')) 
     if request.method == 'GET':
         # Render the form for editing a department
-        query = f"SELECT * from Departments WHERE dept_id={dept_id}"
+        query = f"SELECT d.dept_id, d.dept_name, d.manager_employee_id, e.first_name, e.last_name FROM Departments d LEFT JOIN Employees e ON d.manager_employee_id = e.employee_id WHERE d.dept_id = {dept_id}"
         cur.execute(query)
-        departments = cur.fetchall()
-        
-        # fetch the department details
-        query = f"SELECT DISTINCT d.manager_employee_id, e.first_name, e.last_name FROM Departments d INNER JOIN Employees e ON d.manager_employee_id = e.employee_id"
+        department = cur.fetchone()  # Fetch a single row
+
+        # Fetch all employees for the dropdown
+        query = "SELECT employee_id, first_name, last_name FROM Employees"
         cur.execute(query)
-        managers = cur.fetchall()
-        return render_template("edit_department.html", departments=departments, managers=managers)
+        employees = cur.fetchall()
+        return render_template("edit_department.html", department=department, employees=employees)
+
 
 @app.route('/devices')
 def devices():
