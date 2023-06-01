@@ -63,7 +63,11 @@
         <div class="form-container">
             <input type="hidden" name="form_type" value="new_train_log">
             <label for="employee_id">Employee ID:</label>
-            <input type="text" id="employee_id" name="employee_id">
+            <select id="employee_id" name="employee_id">
+                {% for employee in employees %}
+                    <option value="{{ employee.employee_id }}">{{ employee.employee_name }}</option>
+                {% endfor %}
+            </select>
             <br>
             <label for="training_id">Training ID:</label>
             <input type="number" id="training_id" name="training_id">
