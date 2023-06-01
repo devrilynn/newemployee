@@ -48,7 +48,7 @@ def new_employee():
         ln = request.form['last_name']
         email = request.form['email']
         dept_id = int(request.form['dept_id'])
-        active = "Yes" if active in request.form else "No"
+        active = "Yes" if 'active' in request.form else "No"
         hire_date = request.form["hire_date"]
         role_id = int(request.form["role_id"])
         query = "INSERT INTO Employees( first_name, last_name, email, dept_id, active, hire_date, role_id )\n"
@@ -72,8 +72,7 @@ def edit_employee(id):
         ln = request.form['last_name']
         email = request.form['email']
         dept_id = int(request.form['dept_id'])
-        active = request.form["active"]
-        active = "Yes" if active else "No"
+        active = "Yes" if 'active' in request.form else "No"
         hire_date = request.form["hire_date"]
         role_id = int(request.form["role_id"])        # UPDATE query
         query = f"UPDATE Employees SET first_name = '{fn}', last_name = '{ln}', email = '{email}', dept_id = {dept_id}, active = '{active}', hire_date = '{hire_date}', role_id = {role_id} WHERE employee_id = {eid}"
@@ -150,11 +149,7 @@ def new_department():
         mysql.connection.commit()
         return redirect(url_for('departments'))
     else:
-        query = "SELECT manager_employee_id FROM Departments"
-        cur.execute(query)
-        managers = cur.fetchall()
-        
-        query = f"SELECT DISTINCT d.manager_employee_id, e.first_name, e.last_name FROM Departments d INNER JOIN Employees e ON d.manager_employee_id = e.employee_id"
+        query = "SELECT employee_id, first_name, last_name FROM Employees"
         cur.execute(query)
         managers = cur.fetchall()
     return render_template("new_department.html", managers=managers)
@@ -174,16 +169,15 @@ def edit_department(dept_id):
         return redirect(url_for('departments')) 
     if request.method == 'GET':
         # Render the form for editing a department
-        query = f"SELECT d.dept_id, d.dept_name, d.manager_employee_id, e.first_name, e.last_name FROM Departments d LEFT JOIN Employees e ON d.manager_employee_id = e.employee_id WHERE d.dept_id = {dept_id}"
+        query = f"SELECT DISTINCT d.dept_id, d.dept_name, d.manager_employee_id, e.first_name, e.last_name FROM Departments d LEFT JOIN Employees e ON d.manager_employee_id = e.employee_id WHERE d.dept_id = {dept_id}"
         cur.execute(query)
-        department = cur.fetchone()  # Fetch a single row
+        departments = cur.fetchall()  # Fetch a single row
 
         # Fetch all employees for the dropdown
         query = "SELECT employee_id, first_name, last_name FROM Employees"
         cur.execute(query)
         employees = cur.fetchall()
-        return render_template("edit_department.html", department=department, employees=employees)
-
+        return render_template("edit_department.html", departments=departments, employees=employees)
 
 @app.route('/devices')
 def devices():
@@ -295,9 +289,9 @@ def trainings():
             cur = mysql.connection.cursor()
             title = request.form['title']
             duration_in_min = request.form['duration_in_min']
-            required_status = request.form['required_status']
+            required_status = "Yes" if 'required_status' in request.form else "No"
             query = "INSERT INTO Trainings (title, duration_in_min, required_status)"
-            vals = f"VALUES ('{title}', {duration_in_min}, {required_status});"
+            vals = f"VALUES ('{title}', {duration_in_min}, '{required_status}');"
             cur.execute(query+vals)
             mysql.connection.commit()
         
