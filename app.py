@@ -289,7 +289,7 @@ def trainings():
             cur = mysql.connection.cursor()
             title = request.form['title']
             duration_in_min = request.form['duration_in_min']
-            required_status = "Yes" if 'required_status' in request.form else "No"
+            required_status = request.form['required_status'] 
             query = "INSERT INTO Trainings (title, duration_in_min, required_status)"
             vals = f"VALUES ('{title}', {duration_in_min}, '{required_status}');"
             cur.execute(query+vals)
@@ -301,7 +301,6 @@ def trainings():
             training_id = request.form['training_id']
             completion_date = request.form['completion_date']
             pass_or_fail = request.form['pass_or_fail']
-            pass_or_fail = "Pass" if pass_or_fail == "Pass" else "Fail"
             query = "INSERT INTO TrainingDetails (employee_id, training_id, completion_date, pass_or_fail)"
             vals = f"VALUES ({employee_id}, {training_id}, '{completion_date}', '{pass_or_fail}')"
             cur.execute(query+vals)
