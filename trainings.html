@@ -43,7 +43,7 @@
                 <th>{{ training.training_id }}</th>
                 <th>{{ training.title }}</th>
                 <th>{{ training.duration_in_min }}</th>
-                <th>{{ training.required_status }}</th>
+                <th>{{ 'Yes' if training.required_status else 'No' }}</th>
                 <td><a href="/delete_training/{{ training.training_id }}" class="delete-icon"><i class="fas fa-trash-alt"></i></td>
             </tr>
             {% endfor %}
@@ -92,7 +92,7 @@
                 <th>{{ training_det.employee_id }}</th>
                 <th>{{ training_det.training_id }}</th>
                 <th>{{ training_det.completion_date }}</th>
-                <th>{{ training_det.pass_or_fail }}</th>
+                <th>{{ 'Pass' if training_det.pass_or_fail else 'Fail' }}</th>
                 <td><a href="/delete_training_log/{{ training_det.training_details_id }}" class="delete-icon"><i class="fas fa-trash-alt"></i></td>
             </tr>
             {% endfor %}
