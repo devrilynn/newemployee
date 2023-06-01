@@ -36,11 +36,6 @@
                         {{ department['dept_name'] }}
                     </option>
                 {% endfor %}
-                {% for department in departments %}
-                    {% if department['dept_name'] != departments[0].dept_name %}
-                        <option value="{{ department['dept_name'] }}">{{ department['dept_name'] }}</option>
-                    {% endif %}
-                {% endfor %}
             </select>
             <label for="manager_employee_id">Manager:</label>
             <select id="manager_employee_id" name="manager_employee_id">
