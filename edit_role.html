@@ -30,7 +30,7 @@
         <form action="/edit_role/{{ roles[0].role_id }}" method="POST">
             <input type="hidden" id="role_id" name="role_id" value="{{ roles[0].role_id }}">
             <label for="title">Title:</label>
-            <select id="title" name="title" value="{{ roles[0].role_title}}">
+            <select id="title" name="title" value="{{ roles[0].title}}">
                 {% for title in titles %}
                 <option value="{{ title }}" {% if role.title == title %}selected{% endif %}>
                     {{ title }}
