@@ -76,7 +76,6 @@
     <table>
         <thead>
             <tr>
-                <th>Training Details ID</th>
                 <th>Employee ID</th>
                 <th>Training ID</th>
                 <th>Completion Date</th>
@@ -87,11 +86,10 @@
         <tbody>
             {% for training_det in training_details %}
             <tr>
-                <th>{{ training_det.training_details_id }}</th>
-                <th>{{ training_det.employee_id }}</th>
-                <th>{{ training_det.training_id }}</th>
-                <th>{{ training_det.completion_date }}</th>
-                <th>{{ 'Pass' if training_det.pass_or_fail else 'Fail' }}</th>
+                <td>{{ training_det.employee_id }}</td>
+                <td>{{ training_det.training_id }}</td>
+                <td>{{ training_det.completion_date }}</td>
+                <td>{{ 'Pass' if training_det.pass_or_fail else 'Fail' }}</td>
                 <td><a href="/delete_training_log/{{ training_det.training_details_id }}" class="delete-icon"><i class="fas fa-trash-alt"></i></td>
             </tr>
             {% endfor %}
