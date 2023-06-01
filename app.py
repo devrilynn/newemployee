@@ -48,14 +48,11 @@ def new_employee():
         ln = request.form['last_name']
         email = request.form['email']
         dept_id = int(request.form['dept_id'])
-        dept_name = request.form(['dept_name'])
-        active = request.form["active"]
-        active = "Yes" if active else "No"
+        active = "Yes" if active in request.form else "No"
         hire_date = request.form["hire_date"]
         role_id = int(request.form["role_id"])
-        role_title = request.form['role_title']
-        query = "INSERT INTO Employees( first_name, last_name, email, dept_id, dept_name, active, hire_date, role_id )\n"
-        vals = f"values ('{fn}', '{ln}', '{email}', {dept_id}, '{dept_name}', '{active}', '{hire_date}', '{role_id}', '{role_title}')"
+        query = "INSERT INTO Employees( first_name, last_name, email, dept_id, active, hire_date, role_id )\n"
+        vals = f"values ('{fn}', '{ln}', '{email}', {dept_id}, '{active}', '{hire_date}', '{role_id}')"
         cur.execute(query+vals)
         mysql.connection.commit()
         return redirect(url_for('employees'))
@@ -75,14 +72,11 @@ def edit_employee(id):
         ln = request.form['last_name']
         email = request.form['email']
         dept_id = int(request.form['dept_id'])
-        dept_name = request.form(['dept_name'])
         active = request.form["active"]
         active = "Yes" if active else "No"
         hire_date = request.form["hire_date"]
-        role_id = int(request.form["role_id"])
-        role_title = request.form["role_title"]
-        # UPDATE query
-        query = f"UPDATE Employees SET first_name = '{fn}', last_name = '{ln}', email = '{email}', dept_id = {dept_id}, dept_name = '{dept_name}', active = '{active}', hire_date = '{hire_date}', role_id = {role_id}, role_title = '{role_title}' WHERE employee_id = {eid}"
+        role_id = int(request.form["role_id"])        # UPDATE query
+        query = f"UPDATE Employees SET first_name = '{fn}', last_name = '{ln}', email = '{email}', dept_id = {dept_id}, active = '{active}', hire_date = '{hire_date}', role_id = {role_id} WHERE employee_id = {eid}"
         # Execute the query to update the employee
         cur.execute(query)
         mysql.connection.commit()
