@@ -6,14 +6,16 @@
 from flask import Flask, render_template, json, request, redirect, url_for
 from flask_mysqldb import MySQL
 import os
+import logging
 
 # database connection info
-app = Flask(__name__, static_folder='static')
-app.config["MYSQL_HOST"] = "classmysql.engr.oregonstate.edu"
-app.config["MYSQL_USER"] = "cs340_anderdev"
-app.config["MYSQL_PASSWORD"] = "6643"
-app.config["MYSQL_DB"] = "cs340_anderdev"
-app.config["MYSQL_CURSORCLASS"] = "DictCursor"
+app = Flask(__name__)
+app.config['DEBUG']             = True
+app.config['MYSQL_HOST']        = 'classmysql.engr.oregonstate.edu'
+app.config['MYSQL_USER']        = 'cs340_ogleja'
+app.config['MYSQL_PASSWORD']    = '9706' #last 4 of onid
+app.config['MYSQL_DB']          = 'cs340_ogleja'
+app.config['MYSQL_CURSORCLASS'] = "DictCursor"
 
 mysql = MySQL(app)
 
@@ -48,7 +50,7 @@ def new_employee():
         ln = request.form['last_name']
         email = request.form['email']
         dept_id = int(request.form['dept_id'])
-        active = "Yes" if 'active' in request.form else "No"
+        active = request.form['active']
         hire_date = request.form["hire_date"]
         role_id = int(request.form["role_id"])
         query = "INSERT INTO Employees( first_name, last_name, email, dept_id, active, hire_date, role_id )\n"
@@ -72,7 +74,7 @@ def edit_employee(id):
         ln = request.form['last_name']
         email = request.form['email']
         dept_id = int(request.form['dept_id'])
-        active = "Yes" if 'active' in request.form else "No"
+        active = request.form['active']
         hire_date = request.form["hire_date"]
         role_id = int(request.form["role_id"])        # UPDATE query
         query = f"UPDATE Employees SET first_name = '{fn}', last_name = '{ln}', email = '{email}', dept_id = {dept_id}, active = '{active}', hire_date = '{hire_date}', role_id = {role_id} WHERE employee_id = {eid}"
@@ -136,23 +138,34 @@ def departments():
 def new_department():
     """
     Handles the creation of a new department.
-    
+
     POST - handle the form submission for creating a new department
     """
     cur = mysql.connection.cursor()
-    if request.method == "POST":
-        dept_name = request.form["dept_name"]
-        manager_id = request.form['manager_employee_id']
-        query = "INSERT INTO Departments( dept_name, manager_employee_id )\n"
-        vals = f"VALUES ('{dept_name}', '{manager_id}')"
-        cur.execute(query+vals)
-        mysql.connection.commit()
-        return redirect(url_for('departments'))
-    else:
-        query = "SELECT employee_id, first_name, last_name FROM Employees"
-        cur.execute(query)
-        managers = cur.fetchall()
-    return render_template("new_department.html", managers=managers)
+    try:
+        if request.method == "POST":
+            dept_name = request.form["dept_name"]
+            manager_id = int(request.form['manager_employee_id'])  # Get the selected manager's ID
+
+            # Retrieve the corresponding first_name and last_name of the selected manager
+            query = "SELECT first_name, last_name FROM Employees WHERE employee_id = %s"
+            cur.execute(query, (manager_id,))
+            manager = cur.fetchone()
+
+            # Insert the new department with the retrieved manager_id
+            query = "INSERT INTO Departments (dept_name, manager_employee_id)\n"
+            vals = f"VALUES ('{dept_name}', {manager_id})"
+            cur.execute(query+vals)
+            mysql.connection.commit()
+            return redirect(url_for('departments'))
+        else:
+            query = "SELECT employee_id, first_name, last_name FROM Employees"
+            cur.execute(query)
+            managers = cur.fetchall()
+        return render_template("new_department.html", managers=managers)
+    except Exception as e:
+        logging.error(f"Error occurred: {str(e)}")
+        return "An error occurred while processing the request."
 
 @app.route('/edit_department/<int:dept_id>', methods=['GET', 'POST'])
 def edit_department(dept_id):
@@ -279,15 +292,13 @@ def trainings():
         # Grab all training logs
         query = "SELECT * FROM TrainingDetails;"
         cur.execute(query)
-        training_deatils_res = cur.fetchall()
+        training_details_res = cur.fetchall()
         
         # grab all employees
         query = "SELECT * FROM Employees;"
         cur.execute(query)
-        employees_res = cur.fetchall()
-        return render_template("trainings.html", trainings=trainings_res, training_details=training_details_res, employees=employees_res)
-  
-    
+        employees = cur.fetchall()
+        return render_template("trainings.html", trainings=trainings_res, training_details=training_details_res, employees=employees)    
     if request.method == 'POST':
         
         # check if coming from trainings or training log
@@ -343,6 +354,9 @@ def delete_training_log(id):
 
 @app.route('/passwords')
 def passwords():
+    """
+    Render the passwords page 
+    """
     cur = mysql.connection.cursor()
     if request.method == "GET":
         query = "SELECT * FROM Passwords;"
@@ -365,5 +379,5 @@ def delete_password(id):
 
 # Listener
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 11328))
+    port = int(os.environ.get('PORT', 9707))
     app.run(port=port, debug=True)
