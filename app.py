@@ -280,7 +280,13 @@ def trainings():
         query = "SELECT * FROM TrainingDetails;"
         cur.execute(query)
         training_deatils_res = cur.fetchall()
-        return render_template("trainings.html", trainings=trainings_res, training_details=training_deatils_res)
+        
+        # grab all employees
+        query = "SELECT * FROM Employees;"
+        cur.execute(query)
+        employees_res = cur.fetchall()
+        return render_template("trainings.html", trainings=trainings_res, training_details=training_details_res, employees=employees_res)
+  
     
     if request.method == 'POST':
         
