@@ -24,7 +24,6 @@ mysql = MySQL(app)
 def root():
     return render_template("home.html")
 
-@app.route('/employees', methods=["GET"])
 def employees():
     """
     Render the employees page and pass employee data
@@ -32,7 +31,7 @@ def employees():
     cur = mysql.connection.cursor()
     if request.method == "GET":
         # Retrieve all employees in the database
-        query = "SELECT * from Employees;"
+        query = "SELECT e.first_name, e.last_name, e.email, d.dept_name, r.title, e.active, e.hire_date FROM Employees e JOIN Departments d ON e.dept_id = d.dept_id JOIN Roles r ON e.role_id = r.role_id;"
         cur.execute(query)
         employees = cur.fetchall()
     return render_template("employees.html", employees=employees)
