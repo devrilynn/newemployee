@@ -76,7 +76,8 @@ def edit_employee(id):
         dept_id = int(request.form['dept_id'])
         active = request.form['active']
         hire_date = request.form["hire_date"]
-        role_id = int(request.form["role_id"])        # UPDATE query
+        role_id = int(request.form["role_id"])        
+        # UPDATE query
         query = f"UPDATE Employees SET first_name = '{fn}', last_name = '{ln}', email = '{email}', dept_id = {dept_id}, active = '{active}', hire_date = '{hire_date}', role_id = {role_id} WHERE employee_id = {eid}"
         # Execute the query to update the employee
         cur.execute(query)
@@ -84,16 +85,10 @@ def edit_employee(id):
         return redirect(url_for('employees'))
     if request.method == "GET":
         # Render the form for editing an employee
-        query = f"SELECT * from Employees WHERE employee_id={id};"
+        query = f"SELECT e.employee_id, e.first_name, e.last_name, e.email, e.dept_id, e.active, e.hire_date, r.role_id, r.title, d.dept_id, d.dept_name FROM Employees e JOIN Departments d ON e.dept_id = d.dept_id JOIN Roles r ON e.role_id = r.role_id WHERE employee_id={id};"
         cur.execute(query)
         employees = cur.fetchall()
         return render_template("edit_employee.html", employees=employees)
-    else:
-        # Fetch the employee data for displaying in the edit area
-        query = f"SELECT * FROM Employees WHERE employee_id = %s"
-        cur.execute(query, (id,))
-        result = cur.fetchall()
-        return render_template("edit_employee.html", employees=result)
 
 @app.route("/delete_employee/<int:id>", methods=["POST"])
 def delete_people(id):
