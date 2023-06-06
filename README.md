@@ -1,4 +1,4 @@
-# In the app.py file under Employees route handler, this code was interpreted/copied from w3schools website for LEFT JOIN and aliases
+# In the app.py file under the Employees and edit_employee route handler,s this code was interpreted/copied from w3schools website for LEFT JOIN and aliases
 # "SELECT e.employee_id, e.first_name, e.last_name, e.email, d.dept_name, r.title, e.active, e.hire_date 
 #  FROM Employees e 
 #  LEFT JOIN Departments d ON e.dept_id = d.dept_id 
