@@ -27,13 +27,25 @@
     <hr>
 
     <div>
-        <form action="/edit_role/{{ roles[0].role_id }}" method="POST">
-            <input type="hidden" id="role_id" name="role_id" value="{{ roles[0].role_id }}">
+        <form action="/edit_role/{{ role[0].role_id }}" method="POST">
+            <input type="hidden" id="role_id" name="role_id" value="{{ role[0].role_id }}">
             <label for="title">Title:</label>
-            <input type="text" id="title" name="title" values="{{ roles[0].title }}">
+            <input type="text" id="title" name="title" value="{{ role[0].title }}">
             <br>
             <label for="access_level">Access Level:</label>
-            <input type="number" id="access_level" name="access_level" value="{{ roles[0]['access_level'] }}">
+            <select id="access_level" name="access_level">
+                <select id="access_level" name="access_level">
+                    <option value="1" {% if role.access_level == 1 %} selected {% endif %}>1</option>
+                    <option value="2" {% if role.access_level == 2 %} selected {% endif %}>2</option>
+                    <option value="3" {% if role.access_level == 3 %} selected {% endif %}>3</option>
+                    <option value="4" {% if role.access_level == 4 %} selected {% endif %}>4</option>
+                    <option value="5" {% if role.access_level == 5 %} selected {% endif %}>5</option>
+                    <option value="6" {% if role.access_level == 6 %} selected {% endif %}>6</option>
+                    <option value="7" {% if role.access_level == 7 %} selected {% endif %}>7</option>
+                    <option value="8" {% if role.access_level == 8 %} selected {% endif %}>8</option>
+                    <option value="9" {% if role.access_level == 9 %} selected {% endif %}>9</option>
+                    <option value="10" {% if role.access_level == 10 %} selected {% endif %}>10</option>
+                </select>
             <br>
             <input type="submit" value="Submit"><br>
             <br>
