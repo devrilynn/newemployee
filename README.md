@@ -9,7 +9,7 @@
 
 
 
-# In the app.py file under the departments route handler, this code was interpreted/copied from w3schools website for LEFT JOIN and aliases
+# In the app.py file under the departments and edit_departments route handlers, this code was interpreted/copied from w3schools website for LEFT JOIN and aliases
 # "SELECT d.dept_id, d.dept_name, e.first_name, e.last_name 
 # FROM Departments d 
 # LEFT JOIN Employees e 
