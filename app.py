@@ -27,10 +27,14 @@ def root():
 def employees():
     """
     Render the employees page and pass employee data
+    This section uses aliases
+    Date: 6/5/23
+    Adapted from:
+    Source URL: https://www.w3schools.com/sql/sql_alias.asp
     """
     cur = mysql.connection.cursor()
     if request.method == "GET":
-        # Retrieve all employees in the database
+        # Retrieve employees using join to get dept_name and title instead of ID
         query = "SELECT e.employee_id, e.first_name, e.last_name, e.email, d.dept_name, r.title, e.active, e.hire_date FROM Employees e JOIN Departments d ON e.dept_id = d.dept_id JOIN Roles r ON e.role_id = r.role_id;"
         cur.execute(query)
         employees = cur.fetchall()
@@ -45,7 +49,6 @@ def new_employee():
     """
     cur = mysql.connection.cursor()
     if request.method == "POST":
-        eid = int(request.form['employee_id'])
         fn = request.form['first_name']
         ln = request.form['last_name']
         email = request.form['email']
@@ -53,12 +56,9 @@ def new_employee():
         active = request.form['active']
         hire_date = request.form["hire_date"]
         role_id = int(request.form["role_id"])
-        query = "INSERT INTO Employees( employee_id, first_name, last_name, email, dept_id, active, hire_date, role_id )\n"
-        vals = f"values ({eid}, '{fn}', '{ln}', '{email}', {dept_id}, '{active}', '{hire_date}', {role_id})"
+        query = "INSERT INTO Employees( first_name, last_name, email, dept_id, active, hire_date, role_id )\n"
+        vals = f"values ('{fn}', '{ln}', '{email}', {dept_id}, '{active}', '{hire_date}', '{role_id}')"
         cur.execute(query+vals)
-        
-        # ensure departments is updated as well
-        query = f"UPDATE Departments SET manager_employee_id = {eid} WHERE dept_id = {dept_id};"
         mysql.connection.commit()
         return redirect(url_for('employees'))
     if request.method == "GET":
@@ -89,12 +89,8 @@ def edit_employee(id):
         hire_date = request.form["hire_date"]
         role_id = int(request.form["role_id"])        
         # UPDATE query
-        query = f"UPDATE Employees SET first_name = '{fn}', last_name = '{ln}', email = '{email}', dept_id = {dept_id}, active = '{active}', hire_date = '{hire_date}', role_id = {role_id} WHERE employee_id = {eid};"
+        query = f"UPDATE Employees SET first_name = '{fn}', last_name = '{ln}', email = '{email}', dept_id = {dept_id}, active = '{active}', hire_date = '{hire_date}', role_id = {role_id} WHERE employee_id = {eid}"
         # Execute the query to update the employee
-        cur.execute(query)
-        
-        # updates Departments page as well
-        query = f"UPDATE Departments SET manager_employee_id = {eid} WHERE dept_id = {dept_id};"
         cur.execute(query)
         mysql.connection.commit()
         return redirect(url_for('employees'))
@@ -146,7 +142,7 @@ def departments():
     """
     cur = mysql.connection.cursor()
     if request.method == "GET":
-        # Retrieve all departments in the database
+        # Retrieve departments using a join to show manager's name instead of ID
         query = "SELECT d.dept_id, d.dept_name, e.first_name, e.last_name FROM Departments d JOIN Employees e ON d.manager_employee_id = e.employee_id;"
         cur.execute(query)
         departments = cur.fetchall()
@@ -192,8 +188,6 @@ def edit_department(dept_id):
         manager_id = request.form['manager_employee_id']
         query = f"UPDATE Departments SET dept_name = '{dept_name}', manager_employee_id = '{manager_id}' WHERE dept_id = {dept_id}"
         cur.execute(query)
-        # ensure that Employees page is updated as well
-        query = f"UPDATE Employees SET dept_id - {dept_id}, WHERE manager_employee_id = {manager_id};"
         mysql.connection.commit()
         return redirect(url_for('departments')) 
     if request.method == 'GET':
@@ -305,12 +299,12 @@ def edit_role(id):
 
     query = "SELECT * FROM Roles WHERE role_id = %s"
     cur.execute(query, (id,))
-    roles = cur.fetchall()
+    role = cur.fetchone()
     
     query = f"SELECT DISTINCT title FROM Roles"
     cur.execute(query)
     title = cur.fetchone() 
-    return render_template("edit_role.html", roles=roles, title=title)
+    return render_template("edit_role.html", role=role, title=title)
 
 @app.route("/delete_role/<int:id>")
 def delete_role(id):
