@@ -226,7 +226,7 @@ def devices():
     cur = mysql.connection.cursor()
     if request.method == "GET":
         # Retrieve all departments in the database
-        query = "SELECT * from Devices"
+        query = "SELECT d.device_id, d.device_name, d.type, d.access_level, d.usb_access, e.first_name, e.last_name from Devices d JOIN Employees e ON d.employee_id = e.employee_id;"
         cur.execute(query)
         devices = cur.fetchall()
     return render_template("devices.html", devices=devices)
@@ -249,7 +249,19 @@ def new_device():
         mysql.connection.commit()
         return redirect(url_for('devices'))
     
-    return render_template("new_device.html")
+    query = f"SELECT employee_id, first_name, last_name FROM Employees;"
+    cur.execute(query)
+    employees= cur.fetchall()
+    
+    return render_template("new_device.html", employees=employees)
+
+@app.route("/delete_device/<int:id>")
+def delete_device(id):
+    cur = mysql.connection.cursor()
+    query = f"DELETE FROM Devices WHERE device_id = %s;"
+    cur.execute(query, (id,))
+    mysql.connection.commit()
+    return redirect(url_for('devices'))
 
 @app.route('/roles')
 def roles():
@@ -299,12 +311,12 @@ def edit_role(id):
 
     query = "SELECT * FROM Roles WHERE role_id = %s"
     cur.execute(query, (id,))
-    role = cur.fetchone()
+    roles = cur.fetchall()
     
     query = f"SELECT DISTINCT title FROM Roles"
     cur.execute(query)
     title = cur.fetchone() 
-    return render_template("edit_role.html", role=role, title=title)
+    return render_template("edit_role.html", roles=roles, title=title)
 
 @app.route("/delete_role/<int:id>")
 def delete_role(id):
