@@ -17,3 +17,13 @@
 # Date: 6/5/2023
 # Adapted/copied from:
 # Source URL:https://www.w3schools.com/sql/sql_join_left.asp  and  https://www.w3schools.com/sql/sql_alias.asp
+
+
+# In the app.py file under the devices route handler, this code was interpreted/copied from w3schools website for LEFT JOIN and aliases
+# "SELECT d.device_name, d.type, d.access_level, d.usb_access, e.first_name, e.last_name 
+# FROM Devices d 
+# LEFT JOIN Employees e 
+# ON d.employee_id = e.employee_id;"
+# Date: 6/5/2023
+# Adapted/copied from:
+# Source URL:https://www.w3schools.com/sql/sql_join_left.asp  and  https://www.w3schools.com/sql/sql_alias.asp
