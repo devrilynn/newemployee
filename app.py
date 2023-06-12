@@ -399,9 +399,9 @@ def trainings():
             title = request.form['title']
             duration_in_min = request.form['duration_in_min']
             required_status = request.form['required_status'] 
-            query = "INSERT INTO Trainings (title, duration_in_min, required_status)"
-            vals = f"VALUES ('{title}', {duration_in_min}, '{required_status}');"
-            cur.execute(query+vals)
+            query = "INSERT INTO Trainings (title, duration_in_min, required_status) VALUES (%s, %s, %s)"
+            vals = (title, duration_in_min, required_status)
+            cur.execute(query, vals)
             mysql.connection.commit()
         
         if request.form['form_type'] == "new_train_log":
@@ -410,32 +410,35 @@ def trainings():
             training_id = request.form['training_id']
             completion_date = request.form['completion_date']
             pass_or_fail = request.form['pass_or_fail']
-            query = "INSERT INTO TrainingDetails (employee_id, training_id, completion_date, pass_or_fail)"
-            vals = f"VALUES ({employee_id}, {training_id}, '{completion_date}', '{pass_or_fail}')"
-            cur.execute(query+vals)
+            query = "INSERT INTO TrainingDetails (employee_id, training_id, completion_date, pass_or_fail) VALUES (%s, %s, %s, %s)"
+            vals = (employee_id, training_id, completion_date, pass_or_fail)
+            cur.execute(query, vals)
             mysql.connection.commit()
-            
         
         return redirect(url_for('trainings'))
 
-@app.route("/edit_train_log/<int:training_id>", methods=['GET', 'POST'])
-def edit_train_log(training_id):
+@app.route("/edit_train_log/<int:training_detail_id>", methods=['GET', 'POST'])
+def edit_train_log(training_detail_id):
     cur = mysql.connection.cursor()
     if request.method == 'POST':
-        training_id = request.form['training_detail_id']
         completion_date = request.form['completion_date']
         pass_or_fail = request.form['pass_or_fail']
         
-        query = f"UPDATE TrainingDetails SET completion_date = '{completion_date}', pass_or_fail = '{pass_or_fail}' WHERE training_detail_id = {training_id};"
-        cur.execute(query)
+        query = "UPDATE TrainingDetails SET completion_date = %s, pass_or_fail = %s WHERE training_detail_id = %s"
+        vals = (completion_date, pass_or_fail, training_detail_id)
+        cur.execute(query, vals)
         mysql.connection.commit()
         
+        return redirect(url_for('trainings'))
+
     if request.method == 'GET':
         # Retrieve training details
-        query = f"SELECT TrainingDetails WHERE training_detail_id = {training_id};"
-        cur.execute(query)
+        query = "SELECT * FROM TrainingDetails WHERE training_detail_id = %s"
+        cur.execute(query, (training_detail_id,))
         training_detail = cur.fetchone()
-    return redirect(url_for('edit_train_log.html', training_detail=training_detail))
+
+        return render_template('edit_train_log.html', training_detail=training_detail)
+
 
 @app.route("/delete_training/<int:id>")
 def delete_training(id):
