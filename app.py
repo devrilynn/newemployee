@@ -417,15 +417,15 @@ def trainings():
         
         return redirect(url_for('trainings'))
 
-@app.route("/edit_train_log/<int:training_detail_id>", methods=['GET', 'POST'])
-def edit_train_log(training_detail_id):
+@app.route("/edit_train_log/<int:id>", methods=['GET', 'POST'])
+def edit_train_log(id):
     cur = mysql.connection.cursor()
     if request.method == 'POST':
         completion_date = request.form['completion_date']
         pass_or_fail = request.form['pass_or_fail']
         
-        query = "UPDATE TrainingDetails SET completion_date = %s, pass_or_fail = %s WHERE training_detail_id = %s"
-        vals = (completion_date, pass_or_fail, training_detail_id)
+        query = "UPDATE TrainingDetails SET completion_date = %s, pass_or_fail = %s WHERE training_id = %s"
+        vals = (completion_date, pass_or_fail, (id,))
         cur.execute(query, vals)
         mysql.connection.commit()
         
@@ -433,11 +433,26 @@ def edit_train_log(training_detail_id):
 
     if request.method == 'GET':
         # Retrieve training details
-        query = "SELECT * FROM TrainingDetails WHERE training_detail_id = %s"
-        cur.execute(query, (training_detail_id,))
-        training_detail = cur.fetchone()
+        query = "SELECT * FROM TrainingDetails WHERE training_id = %s"
+        cur.execute(query, (id,))
+        training_details = cur.fetchone()
+        
+        # Retrieve trainings using join to get title, first, and last name instead of IDs
+        query = "SELECT td.employee_id, td.training_id, td.completion_date, td.pass_or_fail, e.first_name, e.last_name, t.title FROM TrainingDetails td JOIN Employees e ON td.employee_id = e.employee_id JOIN Trainings t ON td.training_id = t.training_id;"
+        cur.execute(query)
+        training_details_res = cur.fetchall()
+        
+        # grab all employees
+        query = "SELECT employee_id, first_name, last_name FROM Employees;"
+        cur.execute(query)
+        employees = cur.fetchall()
+        
+        # retrieve all trainings to populate dropdown
+        query = "SELECT training_id, title FROM Trainings;"
+        cur.execute(query)
+        trainings = cur.fetchall()
 
-        return render_template('edit_train_log.html', training_detail=training_detail)
+        return render_template('edit_train_log.html', training_details=training_details, training_details_res=training_details_res, employees=employees, trainings=trainings)
 
 
 @app.route("/delete_training/<int:id>")
@@ -511,5 +526,5 @@ def delete_password(id):
 
 # Listener
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 11328))
+    port = int(os.environ.get('PORT', 11327))
     app.run(port=port, debug=True)
