@@ -418,18 +418,24 @@ def trainings():
         
         return redirect(url_for('trainings'))
 
-@app.route("edit_train_log/<int:training_detail_id>", methods=['GET', 'POST'])
-def edit_train_log(training_detail_id)
+@app.route("/edit_train_log/<int:training_id>", methods=['GET', 'POST'])
+def edit_train_log(training_id):
+    cur = mysql.connection.cursor()
     if request.method == 'POST':
-        if request.form['form_type'] == "edit_train_log":
-            cur = mysql.connection.cursor()
-            training_detail_id = request.form['training_detail_id']
-            completion_date = request.form['completion_date']
-            pass_or_fail = request.form['pass_or_fail']
-            query = f"UPDATE TrainingDetails SET completion_date = '{completion_date}', pass_or_fail = '{pass_or_fail}' WHERE training_detail_id = {training_detail_id};"
-            cur.execute(query)
-            mysql.connection.commit()
-    return redirect(url_for('trainings'))
+        training_id = request.form['training_detail_id']
+        completion_date = request.form['completion_date']
+        pass_or_fail = request.form['pass_or_fail']
+        
+        query = f"UPDATE TrainingDetails SET completion_date = '{completion_date}', pass_or_fail = '{pass_or_fail}' WHERE training_detail_id = {training_id};"
+        cur.execute(query)
+        mysql.connection.commit()
+        
+    if request.method == 'GET':
+        # Retrieve training details
+        query = f"SELECT TrainingDetails WHERE training_detail_id = {training_id};"
+        cur.execute(query)
+        training_detail = cur.fetchone()
+    return redirect(url_for('edit_train_log.html', training_detail=training_detail))
 
 @app.route("/delete_training/<int:id>")
 def delete_training(id):
