@@ -421,13 +421,19 @@ def trainings():
 def edit_train_log(id):
     cur = mysql.connection.cursor()
     if request.method == 'POST':
-        eid = request.form['employee_id']
+        employee_id = request.form['employee_id']
         training_id = request.form['training_id']
         completion_date = request.form['completion_date']
         pass_or_fail = request.form['pass_or_fail']
         
-        query = "UPDATE TrainingDetails SET employee_id = %s, training_id = %s, completion_date = %s, pass_or_fail = %s WHERE training_id = %s"
-        vals = (eid, training_id, completion_date, pass_or_fail, (id,))
+        # Retrieve the new training title using the training ID
+        query = "SELECT title FROM Trainings WHERE training_id = %s"
+        cur.execute(query, (training_id,))
+        new_training_title = cur.fetchone()[0]
+        
+        # Update the training details with the new values
+        query = "UPDATE TrainingDetails td JOIN Trainings t ON td.training_id = t.training_id SET td.employee_id = %s, td.training_id = %s, td.completion_date = %s, td.pass_or_fail = %s, t.title = %s WHERE td.training_id = %s"
+        vals = (employee_id, training_id, completion_date, pass_or_fail, new_training_title, id)
         cur.execute(query, vals)
         mysql.connection.commit()
         
