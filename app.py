@@ -421,19 +421,13 @@ def trainings():
 def edit_train_log(id):
     cur = mysql.connection.cursor()
     if request.method == 'POST':
-        employee_id = request.form['employee_id']
+        eid = request.form['employee_id']
         training_id = request.form['training_id']
         completion_date = request.form['completion_date']
         pass_or_fail = request.form['pass_or_fail']
         
-        # Retrieve the new training title using the training ID
-        query = "SELECT title FROM Trainings WHERE training_id = %s"
-        cur.execute(query, (training_id,))
-        new_training_title = cur.fetchone()[0]
-        
-        # Update the training details with the new values
-        query = "UPDATE TrainingDetails td JOIN Trainings t ON td.training_id = t.training_id SET td.employee_id = %s, td.training_id = %s, td.completion_date = %s, td.pass_or_fail = %s, t.title = %s WHERE td.training_id = %s"
-        vals = (employee_id, training_id, completion_date, pass_or_fail, new_training_title, id)
+        query = "UPDATE TrainingDetails SET employee_id = %s, training_id = %s, completion_date = %s, pass_or_fail = %s WHERE training_id = %s"
+        vals = (eid, training_id, completion_date, pass_or_fail, (id,))
         cur.execute(query, vals)
         mysql.connection.commit()
         
@@ -448,7 +442,7 @@ def edit_train_log(id):
         # Retrieve trainings using join to get title, first, and last name instead of IDs
         query = "SELECT td.employee_id, td.training_id, td.completion_date, td.pass_or_fail, e.first_name, e.last_name, t.title FROM TrainingDetails td JOIN Employees e ON td.employee_id = e.employee_id JOIN Trainings t ON td.training_id = t.training_id;"
         cur.execute(query)
-        training_details_res = cur.fetchall()
+        training_details_res = cur.fetchone()
         
         # grab all employees
         query = "SELECT employee_id, first_name, last_name FROM Employees;"
