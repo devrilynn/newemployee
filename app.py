@@ -34,8 +34,8 @@ def employees():
     """
     cur = mysql.connection.cursor()
     if request.method == "GET":
-        # Retrieve employees using join to get dept_name and title instead of ID
-        query = "SELECT e.employee_id, e.first_name, e.last_name, e.email, d.dept_name, r.title, e.active, e.hire_date FROM Employees e JOIN Departments d ON e.dept_id = d.dept_id JOIN Roles r ON e.role_id = r.role_id;"
+        # Retrieve employees using left join to get dept_name and title instead of ID and ensure all employees are included even if they aren't assigned a role/department
+        query = "SELECT e.employee_id, e.first_name, e.last_name, e.email, d.dept_name, r.title, e.active, e.hire_date FROM Employees e LEFT JOIN Departments d ON e.dept_id = d.dept_id LEFT JOIN Roles r ON e.role_id = r.role_id;"
         cur.execute(query)
         employees = cur.fetchall()
     return render_template("employees.html", employees=employees)
@@ -61,6 +61,7 @@ def new_employee():
         cur.execute(query+vals)
         mysql.connection.commit()
         return redirect(url_for('employees'))
+    
     if request.method == "GET":
         query = "SELECT dept_id, dept_name FROM Departments;"
         cur.execute(query)
@@ -87,16 +88,19 @@ def edit_employee(id):
         dept_id = int(request.form['dept_id'])
         active = request.form['active']
         hire_date = request.form["hire_date"]
-        role_id = int(request.form["role_id"])        
+        role_id = int(request.form["role_id"]) 
+               
         # UPDATE query
         query = f"UPDATE Employees SET first_name = '{fn}', last_name = '{ln}', email = '{email}', dept_id = {dept_id}, active = '{active}', hire_date = '{hire_date}', role_id = {role_id} WHERE employee_id = {eid}"
+        
         # Execute the query to update the employee
         cur.execute(query)
         mysql.connection.commit()
         return redirect(url_for('employees'))
+    
     if request.method == "GET":
-        # Render the form for editing an employee
-        query = f"SELECT e.employee_id, e.first_name, e.last_name, e.email, e.dept_id, e.active, e.hire_date, r.role_id, r.title, d.dept_id, d.dept_name FROM Employees e JOIN Departments d ON e.dept_id = d.dept_id JOIN Roles r ON e.role_id = r.role_id WHERE employee_id={id};"
+        # Retrieve employees using left join to get dept_name and title instead of ID and ensure all employees are included even if they aren't assigned a role/department
+        query = f"SELECT e.employee_id, e.first_name, e.last_name, e.email, e.dept_id, e.active, e.hire_date, r.role_id, r.title, d.dept_id, d.dept_name FROM Employees e LEFT JOIN Departments d ON e.dept_id = d.dept_id LEFT JOIN Roles r ON e.role_id = r.role_id WHERE employee_id={id};"
         cur.execute(query)
         employees = cur.fetchall()
         
@@ -119,21 +123,31 @@ def delete_people(id):
     query = f"DELETE FROM Employees WHERE employee_id = %s;"
     cur.execute(query, (id,))
     mysql.connection.commit()
-    # redirect back to people page
+    # redirect back to employee page
     return redirect(url_for('employees'))
 
-@app.route("/confirm_delete/<int:employee_id>", methods=["GET"])
-def confirm_delete(employee_id):
+@app.route("/confirm_delete/<int:id>", methods=["GET"])
+def confirm_delete(id):
     """
     Route to confirm deletion of employee
     """
     cur = mysql.connection.cursor()
-    query = f"SELECT * FROM Employees WHERE employee_id = %s;"
-    cur.execute(query, (employee_id,))
-    mysql.connection.commit()
+    
+    # Retrieve employee using left join to get dept_name and title instead of ID
+    query = "SELECT e.employee_id, e.first_name, e.last_name, e.email, d.dept_name, r.title, e.active, e.hire_date FROM Employees e LEFT JOIN Departments d ON e.dept_id = d.dept_id LEFT JOIN Roles r ON e.role_id = r.role_id WHERE e.employee_id = %s;"
+    cur.execute(query, (id,))
     employee = cur.fetchone()
-    print(employee)
-    return render_template("confirm_delete.html", employee=employee)
+    
+    # retrieve dept name associated with id
+    query = "SELECT dept_id, dept_name FROM Departments;"
+    cur.execute(query)
+    department = cur.fetchone()
+    
+    # retrieve title associated with id
+    query = "SELECT role_id, title FROM Roles;"
+    cur.execute(query)
+    role = cur.fetchone()
+    return render_template("confirm_delete.html", employee=employee, department=department, role=role)
 
 @app.route('/departments')
 def departments():
@@ -142,8 +156,8 @@ def departments():
     """
     cur = mysql.connection.cursor()
     if request.method == "GET":
-        # Retrieve departments using a join to show manager's name instead of ID
-        query = "SELECT d.dept_id, d.dept_name, e.first_name, e.last_name FROM Departments d JOIN Employees e ON d.manager_employee_id = e.employee_id;"
+        # Retrieve departments using a left join to show manager's name instead of ID - show all departments even if they don't have a manager
+        query = "SELECT d.dept_id, d.dept_name, e.first_name, e.last_name FROM Departments d LEFT JOIN Employees e ON d.manager_employee_id = e.employee_id;"
         cur.execute(query)
         departments = cur.fetchall()
     return render_template("departments.html", departments=departments)
@@ -160,6 +174,7 @@ def new_department():
         dept_name = request.form["dept_name"]
         manager_id = int(request.form['manager_employee_id'])  # Get the selected manager's ID
 
+            
         # Retrieve the corresponding first_name and last_name of the selected manager
         query = "SELECT first_name, last_name FROM Employees WHERE employee_id = %s"
         cur.execute(query, (manager_id,))
@@ -186,12 +201,18 @@ def edit_department(dept_id):
     if request.method == 'POST':
         dept_name = request.form['dept_name']
         manager_id = request.form['manager_employee_id']
+        
+        # Set manager_id to NULL if it is an empty string
+        if manager_id == "":
+            manager_id = None
+            
         query = f"UPDATE Departments SET dept_name = '{dept_name}', manager_employee_id = '{manager_id}' WHERE dept_id = {dept_id}"
         cur.execute(query)
         mysql.connection.commit()
         return redirect(url_for('departments')) 
+    
     if request.method == 'GET':
-        # Render the form for editing a department
+        # Retrieve departments using left join to get first_name and last_name instead of ID and ensure all departments are included even if they aren't assigned to an employee
         query = f"SELECT DISTINCT d.dept_id, d.dept_name, d.manager_employee_id, e.first_name, e.last_name FROM Departments d LEFT JOIN Employees e ON d.manager_employee_id = e.employee_id WHERE d.dept_id = {dept_id}"
         cur.execute(query)
         departments = cur.fetchall()  
@@ -208,7 +229,7 @@ def delete_department(id):
     Route to handle deleting a department with the passed id.
     """
     cur = mysql.connection.cursor()
-    # mySQL query to delete the department with our passed id
+    # mySQL query to delete the department with passed id
     query = f"DELETE FROM Departments WHERE dept_id = %s;"
     cur.execute(query, (id,))
     mysql.connection.commit()
@@ -225,8 +246,8 @@ def devices():
     # results = cursor.fetchall()
     cur = mysql.connection.cursor()
     if request.method == "GET":
-        # Retrieve all departments in the database
-        query = "SELECT d.device_id, d.device_name, d.type, d.access_level, d.usb_access, e.first_name, e.last_name from Devices d JOIN Employees e ON d.employee_id = e.employee_id;"
+        # Retrieve devices using left join to get first_name and last_name instead of ID and ensure all devices are included even if they aren't assigned to an employee
+        query = "SELECT d.device_id, d.device_name, d.type, d.access_level, d.usb_access, e.first_name, e.last_name from Devices d LEFT JOIN Employees e ON d.employee_id = e.employee_id;"
         cur.execute(query)
         devices = cur.fetchall()
     return render_template("devices.html", devices=devices)
@@ -257,10 +278,15 @@ def new_device():
 
 @app.route("/delete_device/<int:id>")
 def delete_device(id):
+    """
+    Route to handle deleting a device with the passed id.
+    """
     cur = mysql.connection.cursor()
+    # mySQL query to delete the person with our passed id
     query = f"DELETE FROM Devices WHERE device_id = %s;"
     cur.execute(query, (id,))
     mysql.connection.commit()
+    # redirect back to people page
     return redirect(url_for('devices'))
 
 @app.route('/roles')
@@ -340,25 +366,29 @@ def trainings():
     """
     
     if request.method == 'GET':
-        
         # Grab all trainings
         cur = mysql.connection.cursor()  
         query = "SELECT * FROM Trainings;"
         cur.execute(query)
         trainings_res = cur.fetchall()
         
-        # Grab all training logs
-        query = "SELECT * FROM TrainingDetails;"
+        # Retrieve trainings using join to get title, first, and last name instead of IDs
+        query = "SELECT td.employee_id, td.training_id, td.completion_date, td.pass_or_fail, e.first_name, e.last_name, t.title FROM TrainingDetails td JOIN Employees e ON td.employee_id = e.employee_id JOIN Trainings t ON td.training_id = t.training_id;"
         cur.execute(query)
         training_details_res = cur.fetchall()
         
+        # retrieve all trainings to populate dropdown
+        query = "SELECT training_id, title FROM Trainings;"
+        cur.execute(query)
+        training_titles = cur.fetchall()
+        
         # grab all employees
-        query = "SELECT * FROM Employees;"
+        query = "SELECT employee_id, first_name, last_name FROM Employees;"
         cur.execute(query)
         employees = cur.fetchall()
-        return render_template("trainings.html", trainings=trainings_res, training_details=training_details_res, employees=employees)    
-    if request.method == 'POST':
-        
+        return render_template("trainings.html", trainings=trainings_res, training_details=training_details_res, training_titles=training_titles, employees=employees)    
+    
+    if request.method == 'POST':    
         # check if coming from trainings or training log
         if request.form['form_type'] == "new_train":
             cur = mysql.connection.cursor()
@@ -415,14 +445,8 @@ def passwords():
     """
     Render the passwords page 
     """
-    cur = mysql.connection.cursor()
-    passwords = None
-    if request.method == "GET":
-        query = "SELECT * FROM Passwords;"
-        cur.execute(query)
-        passwords=cur.fetchall()
+    cur = mysql.connection.cursor()     
     if request.method == 'POST':
-        print('POST request received')
         # check if coming from trainings or training log
         if request.form['form_type'] == "new_password":
             password = request.form['password']
@@ -433,11 +457,16 @@ def passwords():
             cur.execute(query+vals)
             mysql.connection.commit()
             
-            # retrieve passwords after insertion
-            query = "SELECT * FROM Passwords;"
-            cur.execute(query)
-            passwords=cur.fetchall()
-    return render_template("passwords.html", passwords=passwords)
+    # retrieve passwords using join to display first and last name of employee instead of ID
+    query = "SELECT p.password_id, p.password, p.req_change, e.first_name, e.last_name FROM Passwords p JOIN Employees e ON p.employee_id = e.employee_id;"
+    cur.execute(query)
+    passwords=cur.fetchall()
+    
+    # retrieve all employees first and last name to populate for dropdown option
+    query = f"SELECT employee_id, first_name, last_name FROM Employees;"
+    cur.execute(query)
+    employees = cur.fetchall()
+    return render_template("passwords.html", passwords=passwords, employees=employees)
 
 @app.route("/delete_password/<int:id>")
 def delete_password(id):
