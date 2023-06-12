@@ -415,17 +415,21 @@ def trainings():
             cur.execute(query+vals)
             mysql.connection.commit()
             
-        if request.form['form_type'] == "edit_train_log":
-            cur = mysql.connection.cursor()
-            employee_id = request.form['employee_id']
-            training_id = request.form['training_id']
-            completion_date = request.form['completion_date']
-            pass_or_fail = request.form['pass_or_fail']
-            query = f"UPDATE TrainingDetails SET completion_date = '{completion_date}', pass_or_fail = '{pass_or_fail}' WHERE training_id = {training_id};"
-            cur.execute(query)
-            mysql.connection.commit()
         
         return redirect(url_for('trainings'))
+
+@app.route("edit_train_log/<int:training_detail_id>", methods=['GET', 'POST'])
+def edit_train_log(training_detail_id)
+    if request.method == 'POST':
+        if request.form['form_type'] == "edit_train_log":
+            cur = mysql.connection.cursor()
+            training_detail_id = request.form['training_detail_id']
+            completion_date = request.form['completion_date']
+            pass_or_fail = request.form['pass_or_fail']
+            query = f"UPDATE TrainingDetails SET completion_date = '{completion_date}', pass_or_fail = '{pass_or_fail}' WHERE training_detail_id = {training_detail_id};"
+            cur.execute(query)
+            mysql.connection.commit()
+    return redirect(url_for('trainings'))
 
 @app.route("/delete_training/<int:id>")
 def delete_training(id):
