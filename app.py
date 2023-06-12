@@ -104,10 +104,12 @@ def edit_employee(id):
         cur.execute(query)
         employees = cur.fetchall()
         
+        # retrieve dept name associated with id
         query = "SELECT dept_id, dept_name FROM Departments;"
         cur.execute(query)
         departments = cur.fetchall()
         
+        # retrieve title associated with id
         query = "SELECT role_id, title FROM Roles;"
         cur.execute(query)
         roles = cur.fetchall()
@@ -202,10 +204,13 @@ def edit_department(dept_id):
         dept_name = request.form['dept_name']
         manager_id = request.form['manager_employee_id']
         
-        # Set manager_id to NULL if it is an empty string
-        manager_id = int(manager_id) if manager_id else None
-            
-        query = f"UPDATE Departments SET dept_name = '{dept_name}', manager_employee_id = '{manager_id}' WHERE dept_id = {dept_id}"
+        # Set manager_id to NULL if None is selected from dropdown
+        if not manager_id:
+            query = f"UPDATE Departments SET dept_name = '{dept_name}', manager_employee_id = NULL WHERE dept_id = {dept_id}"
+        else:
+            # update manager_employee_id with provided value
+            query = f"UPDATE Departments SET dept_name = '{dept_name}', manager_employee_id = '{manager_id}' WHERE dept_id = {dept_id}"
+        
         cur.execute(query)
         mysql.connection.commit()
         return redirect(url_for('departments')) 
@@ -409,6 +414,16 @@ def trainings():
             vals = f"VALUES ({employee_id}, {training_id}, '{completion_date}', '{pass_or_fail}')"
             cur.execute(query+vals)
             mysql.connection.commit()
+            
+        if request.form['form_type'] == "edit_train_log":
+            cur = mysql.connection.cursor()
+            employee_id = request.form['employee_id']
+            training_id = request.form['training_id']
+            completion_date = request.form['completion_date']
+            pass_or_fail = request.form['pass_or_fail']
+            query = f"UPDATE TrainingDetails SET completion_date = '{completion_date}', pass_or_fail = '{pass_or_fail}' WHERE training_id = {training_id};"
+            cur.execute(query)
+            mysql.connection.commit()
         
         return redirect(url_for('trainings'))
 
@@ -483,5 +498,5 @@ def delete_password(id):
 
 # Listener
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 11327))
+    port = int(os.environ.get('PORT', 11328))
     app.run(port=port, debug=True)
