@@ -421,11 +421,13 @@ def trainings():
 def edit_train_log(id):
     cur = mysql.connection.cursor()
     if request.method == 'POST':
+        eid = request.form['employee_id']
+        training_id = request.form['training_id']
         completion_date = request.form['completion_date']
         pass_or_fail = request.form['pass_or_fail']
         
-        query = "UPDATE TrainingDetails SET completion_date = %s, pass_or_fail = %s WHERE training_id = %s"
-        vals = (completion_date, pass_or_fail, (id,))
+        query = "UPDATE TrainingDetails SET employee_id = %s, training_id = %s, completion_date = %s, pass_or_fail = %s WHERE training_id = %s"
+        vals = (eid, training_id, completion_date, pass_or_fail, (id,))
         cur.execute(query, vals)
         mysql.connection.commit()
         
