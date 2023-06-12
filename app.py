@@ -203,8 +203,7 @@ def edit_department(dept_id):
         manager_id = request.form['manager_employee_id']
         
         # Set manager_id to NULL if it is an empty string
-        if manager_id == "":
-            manager_id = None
+        manager_id = int(manager_id) if manager_id else None
             
         query = f"UPDATE Departments SET dept_name = '{dept_name}', manager_employee_id = '{manager_id}' WHERE dept_id = {dept_id}"
         cur.execute(query)
