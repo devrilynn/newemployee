@@ -4,21 +4,22 @@
 # Source URL: https://github.com/osu-cs340-ecampus/flask-starter-app
 
 from flask import Flask, render_template, json, request, redirect, url_for
-from flask import Flask, render_template, json, request, redirect, url_for
 from flask_mysqldb import MySQL
 import os
 import logging
-from db_credentials import host, user, passwd, db
+from dotenv import load_dotenv
 
+# Load environment variables from .env file
+load_dotenv()
 
 # Create Flask app
 app = Flask(__name__, static_folder='static')
 
 # Configure MySQL connection
-app.config["MYSQL_HOST"] = host
-app.config["MYSQL_USER"] = user
-app.config["MYSQL_PASSWORD"] = passwd
-app.config["MYSQL_DB"] = db
+app.config["MYSQL_HOST"] = os.environ.get("DB_HOST")
+app.config["MYSQL_USER"] = os.environ.get("DB_USER")
+app.config["MYSQL_PASSWORD"] = os.environ.get("DB_PASSWORD")
+app.config["MYSQL_DB"] = os.environ.get("DB_NAME")
 app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 
 mysql = MySQL(app)
