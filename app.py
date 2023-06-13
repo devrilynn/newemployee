@@ -7,13 +7,19 @@ from flask import Flask, render_template, json, request, redirect, url_for
 from flask_mysqldb import MySQL
 import os
 import logging
+from dotenv import load_dotenv
 
-# database connection info
+# Load environment variables from .env file
+load_dotenv()
+
+# Create Flask app
 app = Flask(__name__, static_folder='static')
-app.config["MYSQL_HOST"] = "classmysql.engr.oregonstate.edu"
-app.config["MYSQL_USER"] = "cs340_anderdev"
-app.config["MYSQL_PASSWORD"] = "6643"
-app.config["MYSQL_DB"] = "cs340_anderdev"
+
+# Configure MySQL connection
+app.config["MYSQL_HOST"] = os.environ.get("DB_HOST")
+app.config["MYSQL_USER"] = os.environ.get("DB_USER")
+app.config["MYSQL_PASSWORD"] = os.environ.get("DB_PASSWORD")
+app.config["MYSQL_DB"] = os.environ.get("DB_NAME")
 app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 
 mysql = MySQL(app)
