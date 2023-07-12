@@ -1,4 +1,4 @@
-# This file uses the starter code from the flask starter app
+# This file is all based on the CS 340 starter code, with the exception of added route handlers and join queries
 # Date: 5/25/2023
 # Based/Adapted from:
 # Source URL: https://github.com/osu-cs340-ecampus/flask-starter-app
@@ -180,18 +180,18 @@ def new_department():
     cur = mysql.connection.cursor()
     if request.method == "POST":
         dept_name = request.form["dept_name"]
-        manager_id = int(request.form['manager_employee_id'])  # Get the selected manager's ID
-
+        manager_id = request.form['manager_employee_id'] 
+        
+        # set manager_id to NULL if None is selected from dropdown
+        if not manager_id:
+            query = "INSERT INTO Departments (dept_name, manager_employee_id) VALUES (%s, NULL);"
+            values = (dept_name,)
+        else:
+            query = "INSERT INTO Departments (dept_name, manager_employee_id) VALUES (%s, %s);"
+            values = (dept_name, manager_id)
             
-        # Retrieve the corresponding first_name and last_name of the selected manager
-        query = "SELECT first_name, last_name FROM Employees WHERE employee_id = %s"
-        cur.execute(query, (manager_id,))
+        cur.execute(query, values)
         managers = cur.fetchall()
-
-        # Insert the new department with the retrieved manager_id
-        query = "INSERT INTO Departments (dept_name, manager_employee_id)\n"
-        vals = f"VALUES ('{dept_name}', {manager_id})"
-        cur.execute(query+vals)
         mysql.connection.commit()
         return redirect(url_for('departments'))
     else:
@@ -212,23 +212,25 @@ def edit_department(dept_id):
         
         # Set manager_id to NULL if None is selected from dropdown
         if not manager_id:
-            query = f"UPDATE Departments SET dept_name = '{dept_name}', manager_employee_id = NULL WHERE dept_id = {dept_id}"
+            query = f"UPDATE Departments SET dept_name = %s, manager_employee_id = NULL WHERE dept_id = %s;"
+            values = (dept_name, dept_id)
         else:
             # update manager_employee_id with provided value
-            query = f"UPDATE Departments SET dept_name = '{dept_name}', manager_employee_id = '{manager_id}' WHERE dept_id = {dept_id}"
+            query = f"UPDATE Departments SET dept_name = %s, manager_employee_id = %s WHERE dept_id = %s;"
+            values = (dept_name, manager_id, dept_id)
         
-        cur.execute(query)
+        cur.execute(query, values)
         mysql.connection.commit()
         return redirect(url_for('departments')) 
     
     if request.method == 'GET':
         # Retrieve departments using left join to get first_name and last_name instead of ID and ensure all departments are included even if they aren't assigned to an employee
-        query = f"SELECT DISTINCT d.dept_id, d.dept_name, d.manager_employee_id, e.first_name, e.last_name FROM Departments d LEFT JOIN Employees e ON d.manager_employee_id = e.employee_id WHERE d.dept_id = {dept_id}"
-        cur.execute(query)
+        query = f"SELECT DISTINCT d.dept_id, d.dept_name, d.manager_employee_id, e.first_name, e.last_name FROM Departments d LEFT JOIN Employees e ON d.manager_employee_id = e.employee_id WHERE d.dept_id = %s;"
+        cur.execute(query, (dept_id,))
         departments = cur.fetchall()  
  
         # Fetch all employees for the dropdown
-        query = "SELECT employee_id, first_name, last_name FROM Employees"
+        query = "SELECT employee_id, first_name, last_name FROM Employees;"
         cur.execute(query)
         employees = cur.fetchall()
         return render_template("edit_department.html", departments=departments, employees=employees)
@@ -383,7 +385,7 @@ def trainings():
         trainings_res = cur.fetchall()
         
         # Retrieve trainings using join to get title, first, and last name instead of IDs
-        query = "SELECT td.employee_id, td.training_id, td.completion_date, td.pass_or_fail, e.first_name, e.last_name, t.title FROM TrainingDetails td JOIN Employees e ON td.employee_id = e.employee_id JOIN Trainings t ON td.training_id = t.training_id;"
+        query = "SELECT td.training_details_id, td.employee_id, td.training_id, td.completion_date, td.pass_or_fail, e.first_name, e.last_name, t.title FROM TrainingDetails td JOIN Employees e ON td.employee_id = e.employee_id JOIN Trainings t ON td.training_id = t.training_id;"
         cur.execute(query)
         training_details_res = cur.fetchall()
         
@@ -425,43 +427,41 @@ def trainings():
 
 @app.route("/edit_train_log/<int:id>", methods=['GET', 'POST'])
 def edit_train_log(id):
+    """
+    Route to handle editing a training log
+    """
     cur = mysql.connection.cursor()
     if request.method == 'POST':
-        eid = request.form['employee_id']
+        employee_id = request.form['employee_id']
         training_id = request.form['training_id']
         completion_date = request.form['completion_date']
         pass_or_fail = request.form['pass_or_fail']
         
-        query = "UPDATE TrainingDetails SET employee_id = %s, training_id = %s, completion_date = %s, pass_or_fail = %s WHERE training_id = %s"
-        vals = (eid, training_id, completion_date, pass_or_fail, (id,))
+        # update training details
+        query = "UPDATE TrainingDetails SET employee_id = %s, training_id = %s, completion_date = %s, pass_or_fail = %s WHERE training_details_id = %s"
+        vals = (employee_id, training_id, completion_date, pass_or_fail, id)
         cur.execute(query, vals)
         mysql.connection.commit()
         
         return redirect(url_for('trainings'))
 
     if request.method == 'GET':
-        # Retrieve training details
-        query = "SELECT * FROM TrainingDetails WHERE training_id = %s"
+        # Retrieve trainings using join to get title, first, and last name instead of displaying IDs
+        query = "SELECT td.training_details_id, td.employee_id, td.training_id, td.completion_date, td.pass_or_fail, e.first_name, e.last_name, t.title FROM TrainingDetails td JOIN Employees e ON td.employee_id = e.employee_id JOIN Trainings t ON td.training_id = t.training_id WHERE td.training_details_id = %s;"
         cur.execute(query, (id,))
         training_details = cur.fetchone()
-        
-        # Retrieve trainings using join to get title, first, and last name instead of IDs
-        query = "SELECT td.employee_id, td.training_id, td.completion_date, td.pass_or_fail, e.first_name, e.last_name, t.title FROM TrainingDetails td JOIN Employees e ON td.employee_id = e.employee_id JOIN Trainings t ON td.training_id = t.training_id;"
-        cur.execute(query)
-        training_details_res = cur.fetchone()
-        
-        # grab all employees
-        query = "SELECT employee_id, first_name, last_name FROM Employees;"
-        cur.execute(query)
-        employees = cur.fetchall()
-        
-        # retrieve all trainings to populate dropdown
+
+        # Retrieve all trainings to populate dropdown
         query = "SELECT training_id, title FROM Trainings;"
         cur.execute(query)
         trainings = cur.fetchall()
 
-        return render_template('edit_train_log.html', training_details=training_details, training_details_res=training_details_res, employees=employees, trainings=trainings)
+        # Retrieve all employees to populate dropdown
+        query = "SELECT DISTINCT employee_id, first_name, last_name FROM Employees;"
+        cur.execute(query)
+        employees = cur.fetchall()
 
+        return render_template('edit_train_log.html', training_details=training_details, trainings=trainings, employees=employees)
 
 @app.route("/delete_training/<int:id>")
 def delete_training(id):
@@ -534,5 +534,5 @@ def delete_password(id):
 
 # Listener
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 11327))
+    port = int(os.environ.get('PORT', 11328))
     app.run(port=port, debug=True)
