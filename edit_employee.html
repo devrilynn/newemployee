@@ -1,0 +1,83 @@
+<!-- 
+ #   This file uses some of the css/html from bootstrap as well as pre-made icons
+ #   Date: 5/30/2023
+ #   Incorporated from:
+ #   Source URL: https://epicbootstrap.com/snippets/registration
+                 https://www.w3schools.com/howto/howto_css_icon_buttons.asp
+                 https://www.w3schools.com/icons/fontawesome_icons_directional.asp
+        
+ #   This file uses a for loop to grab current departments and roles in the database, and pulls what is currently in each field that needs to be edited
+ #   Date: 6/5/23
+ #   Incorporated from:
+ #   Source URL: https://stackoverflow.com/questions/74016925/how-to-set-default-selection-in-flask-dropdown-menu-based-on-users-previous-cho
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/simple-line-icons/2.4.1/css/simple-line-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hex Heros IT Management</title>
+</head>
+
+<body>
+    <h1>Edit Employee</h1>
+    <p>This section allows you to edit an existing employee in the Hex Heros IT Management system.</p>
+    <a href="/employees" button class="btn"><i class="fa fa-close"></i>Back</a>
+    <br>
+
+    <div class="container">
+        <form action="/edit_employee/{{ employees[0].employee_id }}" method="POST">
+            <div class="form-group">
+                <input type="hidden" id="employee_id" name="employee_id" value="{{ employees[0].employee_id }}"><br>
+                <label for="first_name">First name:</label><br>
+                <input type="text" id="first_name" name="first_name" value="{{ employees[0].first_name }}" required><br>
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last name:</label><br>
+                <input type="text" id="last_name" name="last_name" value="{{ employees[0].last_name }}" required><br>     
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label><br>
+                <input type="email" id="email" name="email" value="{{ employees[0].email }}" required><br>
+            </div>
+            <div class="form-group">
+                <label for="dept_id">Choose a Department:</label><br>
+                <select id="dept_id" name="dept_id"><br>
+                    {% for department in departments %}
+                    <option value="{{ department.dept_id }}" {% if department.dept_id == employees[0].dept_id %}selected{% endif %}>{{ department.dept_name }}</option>
+                    {% endfor %}
+                </select><br>
+            </div>
+            <div class="form-group">
+                    <label for="role_id">Choose a Role:</label><br>
+                    <select id="role_id" name="role_id"><br>
+                    {% for role in roles %}
+                    <option value="{{ role.role_id }}" {% if role.role_id == employees[0].role_id %}selected{% endif %}>{{ role.title }}</option>
+                    {% endfor %}
+                </select><br>
+            </div>
+            <div class="form-group">
+                <label for="active">Active: </label>
+                <select id="active" name="active" value="{{ employees[0].active }}">
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="hire_date">Hire Date:</label>
+                <input type="date" id="hire_date" name="hire_date" value="{{ employees[0].hire_date }}" required>
+            </div>
+            <br>
+            <button type="submit" class="button-1" value="Submit">Submit</button>
+        </form>
+    </div>
+</body>
+
+</html>
+
